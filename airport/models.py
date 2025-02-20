@@ -75,6 +75,10 @@ class Flight(models.Model):
         on_delete=models.CASCADE,
         related_name="flights"
     )
+    crew = models.ManyToManyField(
+        Crew,
+        related_name="flights"
+    )
     departure_date = models.DateTimeField()
     arrival_date = models.DateTimeField()
 
