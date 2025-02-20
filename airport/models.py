@@ -81,3 +81,33 @@ class Flight(models.Model):
     def __str__(self):
         return f"{self.airplane.name} ({self.route.source} - {self.route.destination})"
 
+
+class Order(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="orders"
+    )
+
+
+class Ticket(models.Model):
+    row = models.IntegerField()
+    seat = models.IntegerField()
+    flight = models.ForeignKey(
+        Flight,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+
+    def __str__(self):
+        return f"{str(self.flight)} (row:{self.row} seat:{self.seat})"
+
+    class Meta:
+        unique_together = ["flight", "row", "seat"]
+
