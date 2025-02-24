@@ -8,7 +8,7 @@ class Airport(models.Model):
     closest_big_city = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.closest_big_city})"
 
     class Meta:
         unique_together = ["name", "closest_big_city"]
@@ -62,6 +62,9 @@ class Crew(models.Model):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+    def __str__(self):
+        return self.full_name
 
 
 class Flight(models.Model):
