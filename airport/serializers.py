@@ -94,7 +94,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketListSerializer(TicketSerializer):
-    flight = FlightListSerializer(many=True, read_only=True)
+    flight = FlightListSerializer(many=False, read_only=True)
 
 
 class TicketSeatsSerializer(TicketSerializer):
@@ -109,7 +109,7 @@ class FlightRetrieveSerializer(FlightListSerializer):
         read_only=True,
         slug_field="full_name"
     )
-    taken_place = TicketListSerializer(
+    taken_place = TicketSeatsSerializer(
         many=True,
         read_only=True,
         source="tickets"
@@ -122,6 +122,7 @@ class FlightRetrieveSerializer(FlightListSerializer):
             "airplane",
             "crew",
             "departure_date",
+            "arrival_date",
             "taken_place",
         )
 

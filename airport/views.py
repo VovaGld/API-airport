@@ -1,5 +1,4 @@
 from django.db.models import F, Count
-from django.shortcuts import render
 from rest_framework import viewsets, mixins
 from rest_framework.viewsets import GenericViewSet
 
@@ -10,7 +9,6 @@ from airport.models import (
     Crew,
     Flight,
     Order,
-    Ticket,
     Airplane
 )
 from airport.serializers import (
@@ -21,10 +19,12 @@ from airport.serializers import (
     CrewSerializer,
     FlightSerializer,
     OrderSerializer,
-    TicketSerializer,
     AirplaneListSerializer,
     AirplaneTypeRetrieveSerializer,
-    FlightListSerializer, FlightRetrieveSerializer, OrderListSerializer, RouteListSerializer
+    FlightListSerializer,
+    FlightRetrieveSerializer,
+    OrderListSerializer,
+    RouteListSerializer
 )
 
 
@@ -87,12 +87,7 @@ class CrewViewSet(
     serializer_class = CrewSerializer
 
 
-class FlightViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet,
-):
+class FlightViewSet(viewsets.ModelViewSet):
     queryset = (
         Flight.objects.select_related(
             "route", "route__source", "route__destination", "airplane"
@@ -119,7 +114,10 @@ class OrderViewSet(
     mixins.CreateModelMixin,
     GenericViewSet,
 ):
-    queryset = Order.objects.all()
+    queryset = Order.objects.prefetch_related(
+        "tickets__flight__route",
+        "tickets__flight__airplane",
+    )
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
@@ -132,4 +130,3 @@ class OrderViewSet(
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
