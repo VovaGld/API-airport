@@ -1,5 +1,6 @@
 from django.db.models import F, Count
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
@@ -119,6 +120,29 @@ class FlightViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(airplane__name__icontains=airplane)
 
         return queryset.distinct()
+
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "source",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by source city (ex. ?source=New York)",
+            ),
+            OpenApiParameter(
+                "destination",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by destination city (ex. ?destination=New York)",
+            ),
+            OpenApiParameter(
+                "airplane",
+                type=str,
+                description="Filter by airplane name (ex. ?airplane=Boeing)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == "list":
