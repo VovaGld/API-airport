@@ -1,4 +1,5 @@
 from django.db.models import F, Count
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins
 from rest_framework.viewsets import GenericViewSet
 
@@ -100,6 +101,23 @@ class FlightViewSet(viewsets.ModelViewSet):
             )
         )
     )
+
+    def get_queryset(self):
+        source = self.request.query_params.get("source")
+        destination = self.request.query_params.get("destination")
+        airplane = self.request.query_params.get("airplane")
+
+        queryset = self.queryset
+        if source:
+            queryset = queryset.filter(route__source__closest_big_city__icontains=source)
+
+        if destination:
+            queryset = queryset.filter(route__destination__closest_big_city__icontains=destination)
+
+        if airplane:
+            queryset = queryset.filter(airplane__name__icontains=airplane)
+
+        return queryset.distinct()
 
     def get_serializer_class(self):
         if self.action == "list":
