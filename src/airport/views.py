@@ -2,22 +2,13 @@ import os
 
 from django.core.mail import EmailMessage
 from django.db.models import F, Count
-from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from fpdf import FPDF
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from airport.models import (
-    Airport,
-    Route,
-    AirplaneType,
-    Crew,
-    Flight,
-    Order,
-    Airplane
-)
+from airport.models import Airport, Route, AirplaneType, Crew, Flight, Order, Airplane
 from airport.serializers import (
     AirportSerializer,
     RouteSerializer,
@@ -31,7 +22,7 @@ from airport.serializers import (
     FlightListSerializer,
     FlightRetrieveSerializer,
     OrderListSerializer,
-    RouteListSerializer
+    RouteListSerializer,
 )
 
 
@@ -102,8 +93,7 @@ class FlightViewSet(viewsets.ModelViewSet):
         .prefetch_related("crew")
         .annotate(
             tickets_available=(
-                    F("airplane__rows") * F("airplane__seats_in_row")
-                    - Count("tickets")
+                F("airplane__rows") * F("airplane__seats_in_row") - Count("tickets")
             )
         )
     )
@@ -115,16 +105,19 @@ class FlightViewSet(viewsets.ModelViewSet):
 
         queryset = self.queryset
         if source:
-            queryset = queryset.filter(route__source__closest_big_city__icontains=source)
+            queryset = queryset.filter(
+                route__source__closest_big_city__icontains=source
+            )
 
         if destination:
-            queryset = queryset.filter(route__destination__closest_big_city__icontains=destination)
+            queryset = queryset.filter(
+                route__destination__closest_big_city__icontains=destination
+            )
 
         if airplane:
             queryset = queryset.filter(airplane__name__icontains=airplane)
 
         return queryset.distinct()
-
 
     @extend_schema(
         parameters=[
@@ -185,11 +178,13 @@ class OrderViewSet(
             subject="Your Ticket Confirmation",
             body="Your ticket is attached.",
             from_email="no-reply@example.com",
-            to=[self.request.user.email]
+            to=[self.request.user.email],
         )
 
         with open(file_path, "rb") as file:
-            email_message.attach(f"ticket_order_{order.id}.pdf", file.read(), "application/pdf")
+            email_message.attach(
+                f"ticket_order_{order.id}.pdf", file.read(), "application/pdf"
+            )
 
         email_message.send()
         os.remove(file_path)
@@ -201,8 +196,20 @@ class OrderViewSet(
         pdf.cell(200, 10, txt="Your Ticket", ln=True, align="C")
 
         for ticket in order.tickets.all():
-            pdf.cell(200, 10, txt=f"Flight: {ticket.flight}", ln=True, align="L")
-            pdf.cell(200, 10, txt=f"Row: {ticket.row}, Seat: {ticket.seat}", ln=True, align="L")
+            pdf.cell(
+                200,
+                10,
+                txt=f"Flight: {ticket.flight}",
+                ln=True,
+                align="L"
+            )
+            pdf.cell(
+                200,
+                10,
+                txt=f"Row: {ticket.row}, Seat: {ticket.seat}",
+                ln=True,
+                align="L",
+            )
 
         file_path = f"ticket_order_{order.id}.pdf"
         pdf.output(file_path)

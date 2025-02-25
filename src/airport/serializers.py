@@ -9,7 +9,7 @@ from airport.models import (
     Crew,
     Flight,
     Order,
-    Ticket
+    Ticket,
 )
 from airport.validators import validate_ticket_seat, validate_route
 
@@ -86,7 +86,7 @@ class FlightListSerializer(FlightSerializer):
             "airplane",
             "tickets_available",
             "departure_date",
-            "arrival_date"
+            "arrival_date",
         )
 
     def get_route(self, obj):
@@ -115,15 +115,10 @@ class TicketSeatsSerializer(TicketSerializer):
 
 class FlightRetrieveSerializer(FlightListSerializer):
     crew = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field="full_name"
+        many=True, read_only=True, slug_field="full_name"
     )
-    taken_place = TicketSeatsSerializer(
-        many=True,
-        read_only=True,
-        source="tickets"
-    )
+    taken_place = TicketSeatsSerializer(many=True, read_only=True, source="tickets")
+
     class Meta:
         model = Flight
         fields = (
