@@ -1,6 +1,7 @@
 from django.db.models import F, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from airport.models import (
@@ -136,6 +137,8 @@ class OrderViewSet(
         "tickets__flight__route",
         "tickets__flight__airplane",
     )
+
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
