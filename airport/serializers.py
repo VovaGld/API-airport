@@ -11,6 +11,7 @@ from airport.models import (
     Order,
     Ticket
 )
+from airport.validators import validate_ticket_seat, validate_route
 
 
 class AirportSerializer(serializers.ModelSerializer):
@@ -24,6 +25,10 @@ class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance")
+
+    def validate(self, data):
+        validate_route(data["source"], data["destination"])
+        return data
 
 
 class RouteListSerializer(RouteSerializer):
@@ -87,10 +92,15 @@ class FlightListSerializer(FlightSerializer):
     def get_route(self, obj):
         return f"{obj.route.source.closest_big_city} - {obj.route.destination.closest_big_city}"
 
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight")
+
+    def validate(self, data):
+        validate_ticket_seat(data["row"], data["seat"], data["flight"])
+        return data
 
 
 class TicketListSerializer(TicketSerializer):
