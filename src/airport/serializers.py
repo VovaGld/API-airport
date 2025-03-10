@@ -104,7 +104,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketListSerializer(TicketSerializer):
-    flight = FlightListSerializer(many=False, read_only=True)
+    flight = FlightListSerializer(read_only=True)
 
 
 class TicketSeatsSerializer(TicketSerializer):
@@ -133,7 +133,7 @@ class FlightRetrieveSerializer(FlightListSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
+    tickets = TicketSerializer(many=True)
 
     class Meta:
         model = Order
@@ -143,9 +143,8 @@ class OrderSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             tickets_data = validated_data.pop("tickets")
             order = Order.objects.create(**validated_data)
-            for ticket_data in tickets_data:
-                Ticket.objects.create(order=order, **ticket_data)
-            return order
+            tickets = [Ticket(order=order, **ticket_data) for ticket_data in tickets_data]
+            Ticket.objects.bulk_create(tickets)
 
 
 class OrderListSerializer(OrderSerializer):
